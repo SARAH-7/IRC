@@ -28,7 +28,9 @@ int main(int ac, char **av)
     struct sockaddr_in server_addr, client_addr;
     socklen_t client_addr_len = sizeof(client_addr);
     char buffer[1024];
-    int port = atoi(av[1]);
+    int port = std::atoi(av[1]);
+    if (port < 6660 || port > 6669)
+        return (0);
 	int i = 1;
 
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -70,6 +72,8 @@ int main(int ac, char **av)
     while (true)
     {
         ssize_t bytes_read = read(client_fd, buffer, sizeof(buffer) - 1);
+        if (bytes_read == 0)
+            break ;
         if (bytes_read < 0) {
             perror("read");
             close(client_fd);
