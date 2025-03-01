@@ -1,16 +1,33 @@
-#ifndef SERVER_H
-# define SERVER_H
-# include <iostream>
+#ifndef SERVER_HPP
+#define SERVER_HPP
+
+#include <iostream>
+#include <cstdlib>
+#include <cctype>
+#include <cstring>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <poll.h>
+#include <vector>
 
 class Server {
-	private:
-		Server();
-		Server(const Server &copy);
-		Server& operator=(const Server &other);
-		~Server();
-	public:
-		Server(const std::string name, const std::string port, const std::string password);
+private:
+    int port;
+    int server_fd;
+    bool auth;
+    struct sockaddr_in server_addr;
+    struct sockaddr_in client_addr;
+    socklen_t client_addr_len;
+    int max_clients;
+    std::vector<int> client_fds;
 
+public:
+    Server(int p);                     
+    void init();         
+    void acceptClients();
+    void stop();         
 };
 
 #endif
