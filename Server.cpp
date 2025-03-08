@@ -6,44 +6,44 @@
 #include <poll.h>
 
 // Constructor
-Server::Server(int p) : port(p), auth(false), max_clients(10) {
-    client_addr_len = sizeof(client_addr);
+Server::Server(int p, const std::string& password) : _port(p), _password(password), _authenticated(false), _max_clients(10){
+    _client_addr_len = sizeof(_client_addr);
 }
 
 // Initialize the server (create socket, bind, listen)
 void Server::init() {
-    auth = true;
-    server_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_fd < 0) {
+    _authenticated = true;
+    _server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (_server_fd < 0) {
         perror("socket");
         exit(1);
     }
 
     // Set socket options
     int opt = 1;
-    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
     // Set up server address
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(port);
+    memset(&_server_addr, 0, sizeof(_server_addr));
+    _server_addr.sin_family = AF_INET;
+    _server_addr.sin_addr.s_addr = INADDR_ANY;
+    _server_addr.sin_port = htons(_port);
 
     // Bind the server socket
-    if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+    if (bind(_server_fd, (struct sockaddr *)&_server_addr, sizeof(_server_addr)) < 0) {
         perror("bind");
-        close(server_fd);
+        close(_server_fd);
         exit(1);
     }
 
     // Listen for incoming connections
-    if (listen(server_fd, max_clients) < 0) {
+    if (listen(_server_fd, _max_clients) < 0) {
         perror("listen");
-        close(server_fd);
+        close(_server_fd);
         exit(1);
     }
 
-    std::cout << "Server listening on port " << port << std::endl;
+    std::cout << "Server listening on port " << _port << std::endl;
 }
 
 // Send message to a specific client
@@ -53,10 +53,22 @@ void Server::sendToClient(int client_fd, const std::string& message) {
 
 // Send message to all clients in a channel (except sender)
 void Server::sendToChannel(int sender_fd, const std::vector<int>& clients, const std::string& message) {
-    for (std::vector<int>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
+    std::vector<int>::const_iterator it;
+    for (it = clients.begin(); it != clients.end(); ++it) {
         if (*it != sender_fd) {
             sendToClient(*it, message);
         }
+    }
+}
+
+// Authenticate client based on password
+bool Server::authenticateClient(int client_fd, const std::string& received_password) {
+    if (received_password == _password) {
+        return true;
+    } else {
+        sendToClient(client_fd, "Invalid password. Connection refused.\n");
+        close(client_fd);
+        return false;
     }
 }
 
@@ -66,16 +78,14 @@ void Server::acceptClients() {
 
     // Add server socket to pollfd list
     pollfd server_pollfd;
-    server_pollfd.fd = server_fd;
+    server_pollfd.fd = _server_fd;
     server_pollfd.events = POLLIN;
-    server_pollfd.revents = 0;
     fds.push_back(server_pollfd);
 
     // Add stdin to detect Cmd+D (EOF)
     pollfd stdin_pollfd;
     stdin_pollfd.fd = STDIN_FILENO;
     stdin_pollfd.events = POLLIN;
-    stdin_pollfd.revents = 0;
     fds.push_back(stdin_pollfd);
 
     while (true) {
@@ -87,20 +97,19 @@ void Server::acceptClients() {
 
         // Check for new client connection
         if (fds[0].revents & POLLIN) {
-            int client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
+            int client_fd = accept(_server_fd, (struct sockaddr *)&_client_addr, &_client_addr_len);
             if (client_fd < 0) {
                 perror("accept");
                 continue;
             }
 
             std::cout << "New client connected!" << std::endl;
-            client_fds.push_back(client_fd);
+            _client_fds.push_back(client_fd);
 
             // Add new client to poll list
             pollfd client_pollfd;
             client_pollfd.fd = client_fd;
             client_pollfd.events = POLLIN;
-            client_pollfd.revents = 0;
             fds.push_back(client_pollfd);
         }
 
@@ -123,7 +132,7 @@ void Server::acceptClients() {
                     // Client disconnected
                     std::cout << "Client disconnected" << std::endl;
                     close(fds[i].fd);
-                    client_fds.erase(client_fds.begin() + (i - 2));
+                    _client_fds.erase(_client_fds.begin() + (i - 2));
                     fds.erase(fds.begin() + i);
                     --i;
                 } else {
@@ -139,9 +148,10 @@ void Server::acceptClients() {
 
 // Stop the server and close connections
 void Server::stop() {
-    for (std::vector<int>::iterator it = client_fds.begin(); it != client_fds.end(); ++it) {
+    std::vector<int>::iterator it;
+    for (it = _client_fds.begin(); it != _client_fds.end(); ++it) {
         close(*it);
     }
-    close(server_fd);
+    close(_server_fd);
     std::cout << "Server stopped." << std::endl;
 }

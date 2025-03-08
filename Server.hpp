@@ -14,22 +14,25 @@
 
 class Server {
 private:
-    int port;
-    int server_fd;
-    bool auth;
-    struct sockaddr_in server_addr;
-    struct sockaddr_in client_addr;
-    socklen_t client_addr_len;
-    int max_clients;
-    std::vector<int> client_fds;
+    int _port;
+    std::string _password;
+    int _server_fd;
+    bool _authenticated;
+    struct sockaddr_in _server_addr;
+    struct sockaddr_in _client_addr;
+    socklen_t _client_addr_len;
+    int _max_clients;
+    std::vector<int> _client_fds;
 
 public:
-    Server(int p);                     
+    Server(int port, const std::string& password);                     
     void init();         
     void acceptClients();
-	void sendToClient(int client_fd, const std::string &message);
-	void sendToChannel(int sender_fd, const std::vector<int>& clients, const std::string& message);
+    bool authenticateClient(int client_fd, const std::string& received_password);
+    void sendToClient(int client_fd, const std::string &message);
+    void sendToChannel(int sender_fd, const std::vector<int>& clients, const std::string& message);
     void stop();         
 };
 
 #endif
+

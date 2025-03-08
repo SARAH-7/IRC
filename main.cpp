@@ -15,7 +15,7 @@ int main(int ac, char **av) {
     }
 
     // Create server object
-    Server server(port);
+    Server server(port, av[2]);
 
     // Initialize the server (create socket, bind, listen)
     server.init();
