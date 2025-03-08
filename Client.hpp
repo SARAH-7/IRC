@@ -10,7 +10,6 @@ class Client{
     int socketfd;
     bool _isRegistered;
     bool _isAuthenticated;
-    bool _isOperator;
     std::string _user;
     std::string _nickname;
     std::string _hostName;
@@ -29,7 +28,7 @@ class Client{
     void setNick(std::string &nickname);
     void setHost(std::string &host);
     void setRealName(std::string &realname);
-
+    
     //Getter Functions
     int getFd() const;
     bool getIsRegistered() const;
