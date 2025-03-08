@@ -27,6 +27,8 @@ public:
     Server(int p);                     
     void init();         
     void acceptClients();
+	void sendToClient(int client_fd, const std::string &message);
+	void sendToChannel(int sender_fd, const std::vector<int>& clients, const std::string& message);
     void stop();         
 };
 

@@ -12,7 +12,6 @@ Server::Server(int p) : port(p), auth(false), max_clients(10) {
 
 // Initialize the server (create socket, bind, listen)
 void Server::init() {
-    // Create socket
     auth = true;
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd < 0) {
@@ -47,6 +46,20 @@ void Server::init() {
     std::cout << "Server listening on port " << port << std::endl;
 }
 
+// Send message to a specific client
+void Server::sendToClient(int client_fd, const std::string& message) {
+    send(client_fd, message.c_str(), message.length(), 0);
+}
+
+// Send message to all clients in a channel (except sender)
+void Server::sendToChannel(int sender_fd, const std::vector<int>& clients, const std::string& message) {
+    for (std::vector<int>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
+        if (*it != sender_fd) {
+            sendToClient(*it, message);
+        }
+    }
+}
+
 // Accept and manage client connections using poll()
 void Server::acceptClients() {
     std::vector<pollfd> fds;
@@ -66,7 +79,7 @@ void Server::acceptClients() {
     fds.push_back(stdin_pollfd);
 
     while (true) {
-        int poll_count = poll(fds.data(), fds.size(), -1);
+        int poll_count = poll(&fds[0], fds.size(), -1);
         if (poll_count < 0) {
             perror("poll");
             break;
@@ -81,6 +94,7 @@ void Server::acceptClients() {
             }
 
             std::cout << "New client connected!" << std::endl;
+            client_fds.push_back(client_fd);
 
             // Add new client to poll list
             pollfd client_pollfd;
@@ -96,7 +110,7 @@ void Server::acceptClients() {
             ssize_t bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer));
             if (bytes_read == 0) {  // EOF detected (Cmd+D)
                 std::cout << "Server shutting down (EOF received)..." << std::endl;
-                return ;
+                return;
             }
         }
 
@@ -109,6 +123,7 @@ void Server::acceptClients() {
                     // Client disconnected
                     std::cout << "Client disconnected" << std::endl;
                     close(fds[i].fd);
+                    client_fds.erase(client_fds.begin() + (i - 2));
                     fds.erase(fds.begin() + i);
                     --i;
                 } else {
@@ -124,8 +139,8 @@ void Server::acceptClients() {
 
 // Stop the server and close connections
 void Server::stop() {
-    for (size_t i = 0; i < client_fds.size(); i++) {
-        close(client_fds[i]);
+    for (std::vector<int>::iterator it = client_fds.begin(); it != client_fds.end(); ++it) {
+        close(*it);
     }
     close(server_fd);
     std::cout << "Server stopped." << std::endl;
