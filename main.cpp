@@ -1,6 +1,7 @@
-#include <iostream>
 #include <cstdlib>
 #include "Server.hpp"
+#include "Client.hpp"
+#include "Commands/Command.hpp"
 
 int main(int ac, char **av) {
     if (ac != 3) {

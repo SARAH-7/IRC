@@ -1,23 +1,18 @@
-NAME = ircserv
+CPPFILES 	   = main.cpp  ./Commands/Command.cpp ./Commands/Nick.cpp ./Commands/User.cpp ./Commands/Invite.cpp ./Commands/Join.cpp ./Commands/Kick.cpp \
+./Commands/Mode.cpp ./Commands/Part.cpp ./Commands/Pass.cpp ./Commands/Topic.cpp ./Commands/Help.cpp ./Commands/Quit.cpp Channel.cpp Client.cpp Server.cpp \
 
-SRC = main.cpp Server.cpp
+CPP	= c++
 
-OBJ = $(SRC:.cpp=.o)
+CPPFLAGS	= -Wall -Wextra -Werror -std=c++98
 
-CXX = c++
-
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98
+NAME	= ircserv
 
 all: $(NAME)
 
-$(NAME):
-	$(CXX) $(CXXFLAGS) $(SRC) -o $(NAME)
+$(NAME): $(CPPFILES)
+	$(CPP) $(CPPFLAGS) $(CPPFILES) -o $(NAME)
 
-clean:
+fclean:
 	rm -f $(NAME)
 
-fclean: clean
-
 re: fclean all
-
-.PHONY: all clean fclean re

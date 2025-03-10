@@ -52,11 +52,11 @@ void Server::sendToClient(int client_fd, const std::string& message) {
 }
 
 // Send message to all clients in a channel (except sender)
-void Server::sendToChannel(int sender_fd, const std::vector<int>& clients, const std::string& message) {
-    std::vector<int>::const_iterator it;
+void Server::sendToChannel(int sender_fd, const std::vector<Client*>& clients, const std::string& message) {
+    std::vector<Client *>::const_iterator it;
     for (it = clients.begin(); it != clients.end(); ++it) {
-        if (*it != sender_fd) {
-            sendToClient(*it, message);
+        if ((*it)->getFd() != sender_fd) {
+            sendToClient((*it)->getFd(), message);
         }
     }
 }
@@ -66,9 +66,81 @@ bool Server::authenticateClient(int client_fd, const std::string& received_passw
     if (received_password == _password) {
         return true;
     } else {
-        sendToClient(client_fd, "Invalid password. Connection refused.\n");
+        sendToClient(client_fd, "464 :Password incorrect\n");
         close(client_fd);
         return false;
+    }
+}
+
+Channel *Server::getChannel(const std::string &channelName)
+{
+    std::map<int, Channel *>::iterator it;
+    for(it = _channels.begin(); it != _channels.end(); ++it)
+    {
+        if(it->second->getName() == channelName)
+            return (it->second);
+    }
+    return (NULL);
+}
+
+Channel *Server::createChannel(const std::string &channelName)
+{
+    Channel *newChannel = new Channel();
+    newChannel->setName(channelName);
+    _channels[_channels.size()] = newChannel;
+    return (newChannel);
+}
+
+Client *Server::getClientByNick(const std::string &nickname)
+{
+    std::map<int, Client*>::iterator it;
+    for (it = _clients.begin(); it != _clients.end(); ++it)
+    {
+        if (it->second->getNick() == nickname)
+            return (it->second);
+    }
+    return (NULL);
+}
+
+std::vector<std::string> Server::getClientChannels(Client &client)
+{
+    std::vector<std::string> clientChannels;
+    std::map<int, Channel *>::iterator it;
+
+    for (it = _channels.begin(); it != _channels.end(); ++it) 
+    {
+        if (it->second->isMember(client.getFd()))  
+        {
+            clientChannels.push_back(it->second->getName());  
+        }
+    }
+    return (clientChannels);
+}
+
+void Server::deleteChannel(const std::string &channelName)
+{
+    std::map<int, Channel*>::iterator it;
+    for (it = _channels.begin(); it != _channels.end(); ++it)
+    {
+        if (it->second->getName() == channelName)
+        {
+            delete it->second;
+            _channels.erase(it);//
+            std::cout << "Channel " << channelName << " deleted from server." << std::endl;
+            return ;
+        }
+    }
+}
+
+void Server::disconnectClient(int clientFd)
+{
+    std::map<int, Client *>::iterator it = _clients.find(clientFd);//
+    if (it != _clients.end())
+    {
+        close(clientFd);
+        delete it->second;
+        _clients.erase(it);
+        std::cout << "Client " << clientFd << " disconnected from the server." << std::endl;
     }
 }
 
@@ -104,6 +176,7 @@ void Server::acceptClients() {
             }
 
             std::cout << "New client connected!" << std::endl;
+            _clients[client_fd] = new Client(client_fd);
             _client_fds.push_back(client_fd);
 
             // Add new client to poll list
@@ -132,12 +205,17 @@ void Server::acceptClients() {
                     // Client disconnected
                     std::cout << "Client disconnected" << std::endl;
                     close(fds[i].fd);
+                    _clients[fds[i].fd];
                     _client_fds.erase(_client_fds.begin() + (i - 2));
                     fds.erase(fds.begin() + i);
                     --i;
                 } else {
                     buffer[bytes_read] = '\0';
-                    std::cout << "Received message: " << buffer << std::endl;
+                    std::string message(buffer);
+                    Client* client = _clients[fds[i].fd];
+                    Command cmd(message, *client, *this);
+                    cmd.parseBuffer();
+                    cmd.executeCommand();
                 }
             }
         }
@@ -152,6 +230,12 @@ void Server::stop() {
     for (it = _client_fds.begin(); it != _client_fds.end(); ++it) {
         close(*it);
     }
+    for(std::map<int, Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+        delete it->second;
+    for(std::map<int, Channel *>::iterator it = _channels.begin(); it != _channels.end(); ++it)
+        delete it->second;
+    _clients.clear();
+    _channels.clear();
     close(_server_fd);
     std::cout << "Server stopped." << std::endl;
 }
