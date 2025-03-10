@@ -51,16 +51,6 @@ void Server::sendToClient(int client_fd, const std::string& message) {
     send(client_fd, message.c_str(), message.length(), 0);
 }
 
-// Send message to all clients in a channel (except sender)
-void Server::sendToChannel(int sender_fd, const std::vector<Client*>& clients, const std::string& message) {
-    std::vector<Client *>::const_iterator it;
-    for (it = clients.begin(); it != clients.end(); ++it) {
-        if ((*it)->getFd() != sender_fd) {
-            sendToClient((*it)->getFd(), message);
-        }
-    }
-}
-
 // Authenticate client based on password
 bool Server::authenticateClient(int client_fd, const std::string& received_password) {
     if (received_password == _password) {
@@ -238,4 +228,13 @@ void Server::stop() {
     _channels.clear();
     close(_server_fd);
     std::cout << "Server stopped." << std::endl;
+}
+
+void Server::sendToChannel(int sender_fd, const std::vector<Client*>& clients, const std::string& message) {
+    std::vector<Client *>::const_iterator it;
+    for (it = clients.begin(); it != clients.end(); ++it) {
+        if ((*it)->getFd() != sender_fd) {
+            sendToClient((*it)->getFd(), message);
+        }
+    }
 }
