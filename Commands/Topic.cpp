@@ -1,0 +1,30 @@
+#include "Command.hpp"
+
+void Command::execTopic()
+{
+    if (args.empty())
+    {
+        server.sendToClient(client.getFd(), RED "461 TOPIC :Not enough parameters\n" RESET);
+        return;
+    }
+    std::string channelName = args[0];
+    Channel* channel = server.getChannel(channelName);
+    if (!channel)
+    {
+        server.sendToClient(client.getFd(), RED "403 " + channelName + " :No such channel\n" RESET);
+        return;
+    }
+    if (args.size() == 1)
+    {
+        server.sendToClient(client.getFd(), "332 " + channelName + " :" + channel->getTopic() + "\n");
+        return;
+    }
+    if (channel->getMode('t') && !channel->isOperator(client.getFd()))
+    {
+        server.sendToClient(client.getFd(), RED "482 " + channelName + " :You're not a channel operator\n" RESET);
+        return;
+    }
+    std::string topic = args[1];
+    channel->setTopic(topic);
+    server.sendToChannel(client.getFd(), channel->getMembers(), "Topic for " + channelName + " changed to: " + topic + "\n");
+}

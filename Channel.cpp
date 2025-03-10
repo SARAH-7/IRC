@@ -33,7 +33,13 @@ void Channel::setMode(const char mode, const bool value)
 
 std::string Channel::getName() const { return (_name); }
 
+std::string Channel::getPassword() const { return (_password); }
+
 std::string Channel::getTopic() const { return (_topic); }
+
+int Channel::getLimits() const { return (_limits); }
+
+int Channel::getCurrentUsers() const { return (_currentUsers); }
 
 bool Channel::getMode(char mode) const 
 {
@@ -59,16 +65,6 @@ std::vector<Client *> Channel::getOperators() const
 
 void Channel::addMember(Client *client)
 {
-    if(_modes['i'] && _operators.find(client->getFd()) == _operators.end())
-    {
-        std::cerr << "Error: Channel is invite-only" << std::endl;
-        return;
-    }
-    if(_currentUsers > 0 && _currentUsers == _limits)
-    {
-        std::cerr << "Error: Maximum limit for channel reached" << std::endl;
-        return ;
-    }
     if (_members.find(client->getFd()) == _members.end())
     {
         _members[client->getFd()] = client;
@@ -90,19 +86,40 @@ void Channel::removeMember(Client *client)
 void Channel::giveOperatorPrivilage(Client *client)
 {
     if(_members.find(client->getFd()) != _members.end())
-    {
         _operators[client->getFd()] = client;
-        std::cout << client->getFd() << " is not an operator" << std::endl;
-    }
 }
 
 void Channel::removeOperatorPrivilage(Client *client)
 {
     if(_operators.find(client->getFd()) != _operators.end())
-    {
         _operators.erase(client->getFd());
-        std::cout << client->getFd() << " is no longer an operator" << std::endl;
-    }
+}
+
+bool Channel::isMember(int clientFd) const
+{
+    return _members.find(clientFd) != _members.end();
+}
+
+bool Channel::isOperator(int clientFd) const
+{
+    return _operators.find(clientFd) != _operators.end();
+}
+
+void Channel::addInvitedUser(Client *client) 
+{
+    _invitedUsers.push_back(client->getFd());
+}
+
+bool Channel::isInvited(Client *client)
+{
+    return std::find(_invitedUsers.begin(), _invitedUsers.end(), client->getFd()) != _invitedUsers.end();
+}
+
+void Channel::removeInvitedUser(Client *client)
+{
+    std::vector<int>::iterator it = std::find(_invitedUsers.begin(), _invitedUsers.end(), client->getFd());
+    if (it != _invitedUsers.end())
+        _invitedUsers.erase(it);
 }
 
 Channel::~Channel() {}
