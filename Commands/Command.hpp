@@ -34,6 +34,15 @@ class Command{
     void execUser();
     void execNick();
     void execJoin();
+    void execPass();
+    void execPart();
+    void execTopic();
+    void execKick();
+    void execInvite();
+    void execMode();
+    void execQuit();
+    void execHelp();
+    void applyMode(Channel *channel, char mode, bool enable, const std::string &modeType);
 };
 
 #endif
