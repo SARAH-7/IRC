@@ -8,6 +8,7 @@
 #include <string>
 #include <sstream>
 #include <map>
+#include <numeric>
 #include <algorithm>
 #include "../Client.hpp"
 #include "../Server.hpp"
