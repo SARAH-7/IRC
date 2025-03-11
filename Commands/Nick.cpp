@@ -31,13 +31,15 @@ void Command::execNick()
         server.sendToClient(client.getFd(), RED "432 " + args[0] + " :Erroneus nickname\n" RESET);
         return ; 
     }
-    if(std::find(nicknameStored.begin(), nicknameStored.end(), args[0]) != nicknameStored.end())
+    if (server.isNickInUse(args[0]))
     {
-        server.sendToClient(client.getFd(), RED "433: " + args[0] + " :Nickname is already in use\n" RESET);
+        server.sendToClient(client.getFd(), RED "433 " + args[0] + " :Nickname is already in use\n" RESET);
         return;
     }
+    if (!client.getNick().empty())
+        server.removeNick(client.getNick());
     client.setNick(args[0]);
-    nicknameStored.push_back(args[0]);
+    server.addNick(args[0]);
     std::string successMsg = "Your nickname had been set to " + client.getNick() + "\n";
     server.sendToClient(client.getFd(), successMsg);
     if(!client.getUser().empty())

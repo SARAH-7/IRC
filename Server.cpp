@@ -132,6 +132,22 @@ void Server::disconnectClient(int clientFd)
     }
 }
 
+bool Server::isNickInUse(const std::string& nick)
+{
+    return _nicknames.find(nick) != _nicknames.end();
+}
+
+void Server::addNick(const std::string& nick)
+{
+    _nicknames.insert(nick);
+}
+
+void Server::removeNick(const std::string& nick)
+{
+    _nicknames.erase(nick);
+}
+
+
 // Accept and manage client connections using poll()
 void Server::acceptClients() {
     std::vector<pollfd> fds;

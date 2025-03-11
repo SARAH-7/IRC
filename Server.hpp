@@ -11,6 +11,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <poll.h>
+#include <set>
 #include <vector>
 #include "Client.hpp"
 #include "./Commands/Command.hpp"
@@ -19,6 +20,9 @@
 #define RED     "\033[31m"
 #define GREEN   "\033[32m"
 #define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
+#define MAGENTA "\033[35m"
+#define CYAN    "\033[36m"
 #define RESET   "\033[0m"
 
 class Server {
@@ -34,6 +38,7 @@ private:
     std::vector<int> _client_fds;
     std::map<int, Client *> _clients;
     std::map<std::string, Channel *> _channels;
+    std::set<std::string> _nicknames;
 
 public:
     Server(int port, const std::string& password);                     
@@ -51,6 +56,10 @@ public:
 
     void deleteChannel(const std::string& channelName);
     void disconnectClient(int clientFd);
+
+    bool isNickInUse(const std::string& nick);
+    void addNick(const std::string& nick);
+    void removeNick(const std::string& nick);
 };
 
 #endif

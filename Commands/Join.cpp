@@ -44,7 +44,7 @@ void Command::execJoin()
     if (channel->getMembers().size() == 1)
     {
         channel->giveOperatorPrivilage(&client);
-        server.sendToClient(client.getFd(), GREEN "You are now the operator of " + channelName + "\n" RESET);
+        server.sendToClient(client.getFd(), CYAN "You are now the operator of " + channelName + "\n" RESET );
     }
     server.sendToChannel(client.getFd(), channel->getMembers(), client.getNick() + " has joined " + channelName + "\n");
 }
