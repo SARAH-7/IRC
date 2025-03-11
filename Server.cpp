@@ -66,9 +66,79 @@ bool Server::authenticateClient(int client_fd, const std::string& received_passw
     if (received_password == _password) {
         return true;
     } else {
-        sendToClient(client_fd, "Invalid password. Connection refused.\n");
-        close(client_fd);
+        sendToClient(client_fd, "464 :Password incorrect\n");
         return false;
+    }
+}
+
+Channel *Server::getChannel(const std::string &channelName)
+{
+    std::map<std::string, Channel *>::iterator it = _channels.find(channelName);
+    if (it != _channels.end())
+        return it->second;
+    return NULL;
+}
+
+Channel *Server::createChannel(const std::string &channelName)
+{
+    Channel *newChannel = new Channel();
+    newChannel->setName(channelName);
+    _channels[channelName] = newChannel;
+    return newChannel;
+}
+
+Client *Server::getClientByNick(const std::string &nickname)
+{
+    std::map<int, Client*>::iterator it;
+    for (it = _clients.begin(); it != _clients.end(); ++it)
+    {
+        if (it->second->getNick() == nickname)
+            return it->second;
+    }
+    return NULL;
+}
+
+std::vector<std::string> Server::getClientChannels(Client &client)
+{
+    std::vector<std::string> clientChannels;
+    std::map<std::string, Channel *>::iterator it;
+
+    for (it = _channels.begin(); it != _channels.end(); ++it) 
+    {
+        if (it->second->isMember(client.getFd()))  
+        {
+            clientChannels.push_back(it->second->getName());  
+        }
+    }
+    return clientChannels;
+}
+
+void Server::deleteChannel(const std::string &channelName)
+{
+    std::map<std::string, Channel*>::iterator it = _channels.find(channelName);
+    if (it != _channels.end())
+    {
+        Channel* channel = it->second;
+        std::vector<Client*> members = channel->getMembers();
+        for (size_t i = 0; i < members.size(); i++)
+        {
+            channel->removeMember(members[i]);
+        }
+        delete channel;
+        _channels.erase(it);
+        std::cout << "Channel " << channelName << " deleted from server." << std::endl;
+    }
+}
+
+void Server::disconnectClient(int clientFd)
+{
+    std::map<int, Client *>::iterator it = _clients.find(clientFd);
+    if (it != _clients.end())
+    {
+        close(clientFd);
+        delete it->second;
+        _clients.erase(it);
+        std::cout << "Client " << clientFd << " disconnected from the server." << std::endl;
     }
 }
 
@@ -103,7 +173,7 @@ void Server::acceptClients() {
                 continue;
             }
 
-            std::cout << "New client connected!" << std::endl;
+            std::cout << "Client " << client_fd << " connected!" << std::endl;
             _clients[client_fd] = new Client(client_fd);
             _client_fds.push_back(client_fd);
 
@@ -144,7 +214,6 @@ void Server::acceptClients() {
                     Command cmd(message, *client, *this);
                     cmd.parseBuffer();
                     cmd.executeCommand();
-                    std::cout << "Received message: " << buffer << std::endl;
                 }
             }
         }
@@ -161,7 +230,19 @@ void Server::stop() {
     }
     for(std::map<int, Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
         delete it->second;
+    for(std::map<std::string, Channel *>::iterator it = _channels.begin(); it != _channels.end(); ++it)
+        delete it->second;
     _clients.clear();
+    _channels.clear();
     close(_server_fd);
     std::cout << "Server stopped." << std::endl;
+}
+
+void Server::sendToChannel(int sender_fd, const std::vector<Client*>& clients, const std::string& message) {
+    std::vector<Client *>::const_iterator it;
+    for (it = clients.begin(); it != clients.end(); ++it) {
+        if ((*it)->getFd() != sender_fd) {
+            sendToClient((*it)->getFd(), message);
+        }
+    }
 }

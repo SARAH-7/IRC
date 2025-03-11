@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <algorithm>
 #include "Client.hpp"
 
 class Channel{
@@ -16,6 +17,7 @@ class Channel{
     std::map<char, bool> _modes;
     std::map<int, Client *> _members;
     std::map<int, Client *> _operators;
+    std::vector<int> _invitedUsers;
 
     public:
     Channel();
@@ -29,7 +31,12 @@ class Channel{
 
     std::string getName() const;
     std::string getTopic() const;
+    std::string getPassword() const;
+    int getCurrentUsers() const;
+    int getLimits() const;
     bool getMode(char mode) const;
+    bool isMember(int clientFd) const;
+    bool isOperator(int clientFd) const;
     std::vector<Client *> getMembers() const;
     std::vector<Client *> getOperators() const;
 
@@ -37,6 +44,10 @@ class Channel{
     void removeMember(Client *client);
     void giveOperatorPrivilage(Client *client);
     void removeOperatorPrivilage(Client *client);
+
+    void addInvitedUser(Client *client);
+    bool isInvited(Client *client);
+    void removeInvitedUser(Client *client);
 };
 
 #endif

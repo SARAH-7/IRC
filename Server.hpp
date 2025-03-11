@@ -16,6 +16,11 @@
 #include "./Commands/Command.hpp"
 #include "Channel.hpp"
 
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define RESET   "\033[0m"
+
 class Server {
 private:
     int _port;
@@ -28,7 +33,7 @@ private:
     int _max_clients;
     std::vector<int> _client_fds;
     std::map<int, Client *> _clients;
-    std::map<int, Channel *> _channels;
+    std::map<std::string, Channel *> _channels;
 
 public:
     Server(int port, const std::string& password);                     
@@ -36,8 +41,16 @@ public:
     void acceptClients();
     bool authenticateClient(int client_fd, const std::string& received_password);
     void sendToClient(int client_fd, const std::string &message);
-    void sendToChannel(int sender_fd, const std::vector<int>& clients, const std::string& message);
-    void stop();         
+    void sendToChannel(int sender_fd, const std::vector<Client*>& clients, const std::string& message);
+    void stop();
+      
+    Channel *getChannel(const std::string &channelName);
+    Channel *createChannel(const std::string &channelName);
+    Client* getClientByNick(const std::string& nickname);
+    std::vector<std::string> getClientChannels(Client &client);
+
+    void deleteChannel(const std::string& channelName);
+    void disconnectClient(int clientFd);
 };
 
 #endif
