@@ -13,10 +13,7 @@ void Command::execJoin()
         password = args[1];
     Channel *channel = server.getChannel(channelName);
     if(!channel)
-    {
         channel = server.createChannel(channelName);
-        channel->giveOperatorPrivilage(&client);
-    }
     if (channel->isMember(client.getFd()))
     {
         server.sendToClient(client.getFd(), RED "442 " + channelName + " :You're are already in this channel\n" RESET);
@@ -27,10 +24,14 @@ void Command::execJoin()
         server.sendToClient(client.getFd(), RED "473 " + channelName + " :Invite-only channel\n" RESET);
         return;
     }
-    if (channel->getMode('k') && password != channel->getPassword())
+    if (channel->getMode('k'))
     {
-        server.sendToClient(client.getFd(), RED "475 " + channelName + " :Incorrect password\n" RESET);
-        return;
+        std::cout << "passowrd: " << password << "\n" << "channel " << channel->getPassword() << "\n";
+        if (password.empty() || password != channel->getPassword())
+        {
+            server.sendToClient(client.getFd(), RED "475 " + channelName + " :Incorrect password\n" RESET);
+            return;
+        }
     }
     if (channel->getMode('l') && channel->getCurrentUsers() >= channel->getLimits())
     {
@@ -40,5 +41,10 @@ void Command::execJoin()
     channel->removeInvitedUser(&client);
     channel->addMember(&client);
     server.sendToClient(client.getFd(), GREEN "Joined " + channelName + " successfully\n" RESET);
+    if (channel->getMembers().size() == 1)
+    {
+        channel->giveOperatorPrivilage(&client);
+        server.sendToClient(client.getFd(), GREEN "You are now the operator of " + channelName + "\n" RESET);
+    }
     server.sendToChannel(client.getFd(), channel->getMembers(), client.getNick() + " has joined " + channelName + "\n");
 }
