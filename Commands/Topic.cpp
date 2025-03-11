@@ -14,6 +14,11 @@ void Command::execTopic()
         server.sendToClient(client.getFd(), RED "403 " + channelName + " :No such channel\n" RESET);
         return;
     }
+    if(!channel->isMember(client.getFd()))
+    {
+        server.sendToClient(client.getFd(), " " + channelName + " You are not in the channel\n");
+        return;
+    }
     if (args.size() == 1)
     {
         server.sendToClient(client.getFd(), "332 " + channelName + " :" + channel->getTopic() + "\n");

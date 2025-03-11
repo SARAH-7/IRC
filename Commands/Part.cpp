@@ -23,6 +23,9 @@ void Command::execPart()
         channel->removeOperatorPrivilage(&client);
     channel->removeMember(&client);
     if(channel->getMembers().empty())
+    {
         server.deleteChannel(channelName);
+        return ;
+    }
     server.sendToChannel(client.getFd(), channel->getMembers(), client.getNick() + " has left " + channelName + "\n");
 }
