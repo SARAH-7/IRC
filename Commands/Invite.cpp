@@ -29,4 +29,5 @@ void Command::execInvite()
     }
     channel->addInvitedUser(invitedClient);
     server.sendToClient(invitedClient->getFd(), YELLOW "You have been invited to " + channelName + "\n" RESET);
+    server.sendToClient(client.getFd(), GREEN "You have successfully invited " + clientNick + " to " + channelName + "\n" RESET);
 }
