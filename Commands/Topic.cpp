@@ -29,7 +29,13 @@ void Command::execTopic()
         server.sendToClient(client.getFd(), RED "482 " + channelName + " :You're not a channel operator\n" RESET);
         return;
     }
-    std::string topic = args[1];
+    std::string topic;
+    for (size_t i = 1; i < args.size(); i++)
+    {
+        if (i > 1)
+            topic += " ";
+        topic += args[i];
+    }
     channel->setTopic(topic);
-    server.sendToChannel(client.getFd(), channel->getMembers(), "Topic for " + channelName + " changed to: " + topic + "\n");
+    server.sendToChannel(channel->getMembers(), "Topic for " + channelName + " changed to: " + topic + "\n");
 }

@@ -46,7 +46,7 @@ public:
     void acceptClients();
     bool authenticateClient(int client_fd, const std::string& received_password);
     void sendToClient(int client_fd, const std::string &message);
-    void sendToChannel(int sender_fd, const std::vector<Client*>& clients, const std::string& message);
+    void sendToChannel(const std::vector<Client*>& clients, const std::string& message);
     void stop();
       
     Channel *getChannel(const std::string &channelName);

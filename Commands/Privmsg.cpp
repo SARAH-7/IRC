@@ -24,7 +24,7 @@ void Command::execPrivMsg() {
             if (channel->isMember(client.getFd())) {
                 // Broadcast the message to all members of the channel
                 std::string formatted_message = ":" + client.getNick() + " PRIVMSG " + target + " :" + message + "\r\n";
-                server.sendToChannel(client.getFd(), channel->getMembers(), formatted_message);
+                server.sendToChannel(channel->getMembers(), formatted_message);
             } else {
                 server.sendToClient(client.getFd(), "404 " + target + " :Cannot send to channel (You're not a member)\r\n");
             }

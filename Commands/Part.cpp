@@ -8,6 +8,16 @@ void Command::execPart()
         return ;
     }
     std::string channelName = args[0];
+    std::string reason;
+    if (args.size() > 0)
+    {
+        for (size_t i = 1; i < args.size(); i++)
+        {
+            if (i > 1)
+                reason += " ";
+            reason += args[i];
+        }
+    }
     Channel* channel = server.getChannel(channelName);
     if (!channel)
     {
@@ -27,5 +37,5 @@ void Command::execPart()
         server.deleteChannel(channelName);
         return ;
     }
-    server.sendToChannel(client.getFd(), channel->getMembers(), client.getNick() + " has left " + channelName + "\n");
+    server.sendToChannel(channel->getMembers(), client.getNick() + " has left " + channelName + " because " + reason + "\n");
 }

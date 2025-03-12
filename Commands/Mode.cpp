@@ -7,16 +7,16 @@ void Command::applyMode(Channel *channel, char mode, bool enable, const std::str
         case 'i':
             channel->setMode('i', enable);
             if(enable)
-                server.sendToChannel(client.getFd(), channel->getMembers(), channel->getName() + " is now invite-only\n");
+                server.sendToChannel(channel->getMembers(), channel->getName() + " is now invite-only\n");
             else
-                server.sendToChannel(client.getFd(), channel->getMembers(), channel->getName() + " invite-only has been removed\n");
+                server.sendToChannel(channel->getMembers(), channel->getName() + " invite-only has been removed\n");
             break;
         case 't':
             channel->setMode('t', enable);
             if(enable)
-                server.sendToChannel(client.getFd(), channel->getMembers(), "Only operators can change the topic " + channel->getName() + "\n");
+                server.sendToChannel(channel->getMembers(), "Only operators can change the topic " + channel->getName() + "\n");
             else
-                server.sendToChannel(client.getFd(), channel->getMembers(), "Everyone can change the topic now\n");
+                server.sendToChannel(channel->getMembers(), "Everyone can change the topic now\n");
             break;
         case 'k':
             channel->setMode('k', enable);
@@ -28,12 +28,12 @@ void Command::applyMode(Channel *channel, char mode, bool enable, const std::str
                     return;
                 }
                 channel->setPassword(modeType);
-                server.sendToChannel(client.getFd(), channel->getMembers(), "Mode +k password on " + channel->getName() + "\n");
+                server.sendToChannel(channel->getMembers(), "Mode +k password on " + channel->getName() + "\n");
             }
             else
             {
                 channel->setPassword("");
-                server.sendToChannel(client.getFd(), channel->getMembers(), "Mode -k removed password on " + channel->getName() + "\n");
+                server.sendToChannel(channel->getMembers(), "Mode -k removed password on " + channel->getName() + "\n");
             }
             break;
             case 'o':{
@@ -51,12 +51,12 @@ void Command::applyMode(Channel *channel, char mode, bool enable, const std::str
                 if (enable)
                 {
                     channel->giveOperatorPrivilage(OpClient);
-                    server.sendToChannel(client.getFd(), channel->getMembers(), OpClient->getNick() + " is now an operator in " + channel->getName() + "\n");
+                    server.sendToChannel(channel->getMembers(), OpClient->getNick() + " is now an operator in " + channel->getName() + "\n");
                 }
                 else
                 {
                     channel->removeOperatorPrivilage(OpClient);
-                    server.sendToChannel(client.getFd(), channel->getMembers(), OpClient->getNick() + " is no longer an operator in " + channel->getName() + "\n");
+                    server.sendToChannel(channel->getMembers(), OpClient->getNick() + " is no longer an operator in " + channel->getName() + "\n");
                 }
             break;
         }
@@ -71,12 +71,12 @@ void Command::applyMode(Channel *channel, char mode, bool enable, const std::str
                }
                int limit = std::atoi(modeType.c_str());
                channel->setLimit(limit);
-               server.sendToChannel(client.getFd(), channel->getMembers(), "Mode +l set on " + channel->getName() + "\n");
+               server.sendToChannel(channel->getMembers(), "Mode +l set on " + channel->getName() + "\n");
             }
             else
             {
                 channel->setLimit(0);
-                server.sendToChannel(client.getFd(), channel->getMembers(), "Mode -l set on " + channel->getName() + "\n");
+                server.sendToChannel(channel->getMembers(), "Mode -l set on " + channel->getName() + "\n");
             }
            break;
         default:

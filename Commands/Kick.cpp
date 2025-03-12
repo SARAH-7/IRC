@@ -27,5 +27,6 @@ void Command::execKick()
         return ;
     }
     channel->removeMember(kickClient);
-    server.sendToChannel(client.getFd(), channel->getMembers(), nick + " has been kicked from " + channelName + "\n");
+    server.sendToChannel(channel->getMembers(), kickClient->getNick() + " has been kicked out " + channelName + "\n");
+    server.sendToClient(kickClient->getFd(), "You have been kicked out from " + channel->getName() + "\n");
 }

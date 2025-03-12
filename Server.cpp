@@ -165,6 +165,7 @@ void Server::acceptClients() {
     fds.push_back(stdin_pollfd);
 
     while (true) {
+        int client_fd;
         int poll_count = poll(&fds[0], fds.size(), -1);
         if (poll_count < 0) {
             perror("poll");
@@ -173,7 +174,7 @@ void Server::acceptClients() {
 
         // Check for new client connection
         if (fds[0].revents & POLLIN) {
-            int client_fd = accept(_server_fd, (struct sockaddr *)&_client_addr, &_client_addr_len);
+            client_fd = accept(_server_fd, (struct sockaddr *)&_client_addr, &_client_addr_len);
             if (client_fd < 0) {
                 perror("accept");
                 continue;
@@ -207,7 +208,7 @@ void Server::acceptClients() {
                 ssize_t bytes_read = read(fds[i].fd, buffer, sizeof(buffer) - 1);
                 if (bytes_read <= 0) {
                     // Client disconnected
-                    std::cout << "Client disconnected" << std::endl;
+                    std::cout << "Client " << client_fd << " disconnected!" << std::endl;
                     close(fds[i].fd);
                     _clients[fds[i].fd];
                     _client_fds.erase(_client_fds.begin() + (i - 2));
@@ -244,10 +245,10 @@ void Server::stop() {
     std::cout << "Server stopped." << std::endl;
 }
 
-void Server::sendToChannel(int sender_fd, const std::vector<Client*>& clients, const std::string& message) {
+void Server::sendToChannel(const std::vector<Client*>& clients, const std::string& message) {
     std::vector<Client *>::const_iterator it;
     for (it = clients.begin(); it != clients.end(); ++it) {
-        if ((*it)->getFd() != sender_fd) {
+        if ((*it)->getFd()) {
             sendToClient((*it)->getFd(), message);
         }
     }
