@@ -9,6 +9,11 @@ void Command::execJoin()
     }
     std::string channelName = args[0];
     std::string password = "";
+    if(channelName[0] != '#')
+    {
+        server.sendToClient(client.getFd(), RED "476 " + channelName + " :Bad Channel Name\n" RESET);
+        return;
+    }
     if(args.size() > 1)
         password = args[1];
     Channel *channel = server.getChannel(channelName);
