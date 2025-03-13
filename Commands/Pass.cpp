@@ -15,7 +15,7 @@ void Command::execPass()
     if (server.authenticateClient(client.getFd(), args[0]))
     {
         client.setIsAuthenticated(true);
-        server.sendToClient(client.getFd(), GREEN "Welcome! Authentication successful.\n" RESET);
+        server.sendToClient(client.getFd(), GREEN "Authentication successful.\n" RESET);
         return ;
     }
 }

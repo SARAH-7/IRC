@@ -5,7 +5,7 @@
 
 int main(int ac, char **av) {
     if (ac != 3) {
-        std::cout << "Invalid number of arguments!" << std::endl;
+        std::cout << "Invalid number of arguments!\n" << "Arguments needed: ./ircserv <port number> <password>" << std::endl;;
         return 1;
     }
 

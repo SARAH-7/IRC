@@ -47,12 +47,14 @@ void Server::init() {
 }
 
 // Send message to a specific client
-void Server::sendToClient(int client_fd, const std::string& message) {
+void Server::sendToClient(int client_fd, const std::string& message)
+{
     send(client_fd, message.c_str(), message.length(), 0);
 }
 
 // Authenticate client based on password
-bool Server::authenticateClient(int client_fd, const std::string& received_password) {
+bool Server::authenticateClient(int client_fd, const std::string& received_password)
+{
     if (received_password == _password) {
         return true;
     } else {
@@ -60,6 +62,22 @@ bool Server::authenticateClient(int client_fd, const std::string& received_passw
         return false;
     }
 }
+
+void Server::sendWelcomeMessage(int clientFd)
+{
+    std::string message = CYAN "╔════════════════════════════════════════════════════════╗\n" RESET;
+    message += CYAN "║        Welcome to Sumaya & Sarah's IRC Server! 🎉      ║\n" RESET;
+    message += CYAN "╠════════════════════════════════════════════════════════╣\n" RESET;
+    message += GREEN "║   To start, you need to register:                      ║\n" RESET;
+    message += GREEN "║  1️⃣  PASS <password>  - Authenticate yourself           ║\n" RESET;
+    message += GREEN "║  2️⃣  NICK <nickname>  - Choose a nickname               ║\n" RESET;
+    message += GREEN "║  3️⃣  USER <username> <hostname> <server> <realname>     ║\n" RESET;
+    message += GREEN "║   Once registered, type /HELP for commands! 🚀         ║\n" RESET;
+    message += CYAN "╚════════════════════════════════════════════════════════╝\n" RESET;
+
+    sendToClient(clientFd, message);
+}
+
 
 Channel *Server::getChannel(const std::string &channelName)
 {
@@ -125,8 +143,22 @@ void Server::disconnectClient(int clientFd)
     std::map<int, Client *>::iterator it = _clients.find(clientFd);
     if (it != _clients.end())
     {
+        Client* client = it->second;
+        std::vector<std::string> clientChannels = getClientChannels(*client);
+        for (size_t i = 0; i < clientChannels.size(); i++)
+        {
+            Channel* channel = getChannel(clientChannels[i]);
+            if (channel)
+            {
+                channel->removeMember(client);
+                if (channel->getMembers().empty())  
+                    deleteChannel(channel->getName());
+            }
+        }
+        if (!client->getNick().empty())
+            removeNick(client->getNick());
         close(clientFd);
-        delete it->second;
+        delete client;
         _clients.erase(it);
         std::cout << "Client " << clientFd << " disconnected from the server." << std::endl;
     }
@@ -142,11 +174,10 @@ void Server::addNick(const std::string& nick)
     _nicknames.insert(nick);
 }
 
-void Server::removeNick(const std::string& nick)
+void Server::removeNick(const std::string &nick)
 {
     _nicknames.erase(nick);
 }
-
 
 // Accept and manage client connections using poll()
 void Server::acceptClients() {
@@ -180,6 +211,7 @@ void Server::acceptClients() {
             }
 
             std::cout << "Client " << client_fd << " connected!" << std::endl;
+            sendWelcomeMessage(client_fd);
             _clients[client_fd] = new Client(client_fd);
             _client_fds.push_back(client_fd);
 
@@ -207,10 +239,7 @@ void Server::acceptClients() {
                 ssize_t bytes_read = read(fds[i].fd, buffer, sizeof(buffer) - 1);
                 if (bytes_read <= 0) {
                     // Client disconnected
-                    std::cout << "Client disconnected" << std::endl;
-                    close(fds[i].fd);
-                    _clients[fds[i].fd];
-                    _client_fds.erase(_client_fds.begin() + (i - 2));
+                    disconnectClient(fds[i].fd);
                     fds.erase(fds.begin() + i);
                     --i;
                 } else {
@@ -224,7 +253,6 @@ void Server::acceptClients() {
             }
         }
     }
-
     stop();
 }
 

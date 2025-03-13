@@ -17,50 +17,39 @@ void Command::parseBuffer()
     while(ss >> arg)
         this->args.push_back(arg);
 }
-//remove quotes
-
 
 void Command::executeCommand()
 {
-    if (!client.getIsRegistered())
-    {
-        if (this->command == "PASS")
-            execPass();
-        else if (this->command == "USER")
-            execUser();
-        else if (this->command == "NICK")
-            execNick();
-        else if (command == "QUIT")
-            execQuit();
-        else
-            server.sendToClient(client.getFd(), RED "You must register with PASS, USER, and NICK before using other commands.\n If you give up and want to leave use the QUIT command\n" RESET);
-    }
+    if (this->command == "PASS")
+        execPass();
+    else if (this->command == "USER")
+        execUser();
+    else if (this->command == "NICK")
+        execNick();
+    else if (this->command == "JOIN")
+        execJoin();
+    else if (this->command == "PART")
+        execPart();
+    else if (this->command == "NICK")
+        execNick();
+    else if (this->command == "TOPIC")
+        execTopic();
+    else if (this->command == "KICK")
+        execKick();
+    else if (this->command == "INVITE")
+        execInvite();
+    else if (this->command == "MODE")
+        execMode();
+    else if (command == "QUIT")
+        execQuit();
+    else if(command == "HELP")
+        execHelp();
+    else if (this->command == "PRIVMSG")
+        execPrivMsg();
     else
-    {
-        if (this->command == "JOIN")
-            execJoin();
-        else if (this->command == "PART")
-            execPart();
-        else if (this->command == "NICK")
-            execNick();
-        else if (this->command == "TOPIC")
-            execTopic();
-        else if (this->command == "KICK")
-            execKick();
-        else if (this->command == "INVITE")
-            execInvite();
-        else if (this->command == "MODE")
-            execMode();
-        else if (command == "QUIT")
-            execQuit();
-        else if(command == "HELP")
-            execHelp();
-		else if (this->command == "PRIVMSG")
-			execPrivMsg();
-        else
-            server.sendToClient(client.getFd(), RED "Unknown command: " + this->command + " If you need assisatnce use the HELP command\n" RESET);
-    }
+        server.sendToClient(client.getFd(), RED "Unknown command: " + this->command + " If you need assisatnce use the HELP command\n" RESET);
 }
+
 
 
 

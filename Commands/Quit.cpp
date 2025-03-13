@@ -12,13 +12,8 @@ void Command::execQuit()
     {
         Channel* channel = server.getChannel(channels[i]);
         if (channel)
-        {
             server.sendToChannel(client.getFd(), channel->getMembers(), message);
-            channel->removeMember(&client);
-            if (channel->getMembers().empty())  
-                server.deleteChannel(channel->getName());
-        }
     }
-    server.sendToClient(client.getFd(), RED "ERROR :Closing connection\n" RESET);
+    server.sendToClient(client.getFd(), RED "ERROR :Closing connection\r\n" RESET);
     server.disconnectClient(client.getFd());
 }
