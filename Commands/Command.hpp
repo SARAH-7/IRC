@@ -44,6 +44,7 @@ class Command{
     void execQuit();
     void execHelp();
 	void execPrivMsg();
+    void execNotice();
     void applyMode(Channel *channel, char mode, bool enable, const std::string &modeType);
 };
 

@@ -17,7 +17,7 @@ void Command::execPrivMsg()
             message += ' ';
     }
     // Check if the target is a channel (starts with '#' or '&')
-    if (target[0] == '#' || target[0] == '&') {
+    if (target[0] == '#') {
         // Send message to the channel
         Channel* channel = server.getChannel(target);
         if (channel) {

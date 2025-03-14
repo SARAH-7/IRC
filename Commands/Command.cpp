@@ -4,7 +4,6 @@ Command::Command(std::string buffer, Client &client, Server &server) : buffer(bu
 
 Command::~Command() {}
 
-//fix parsing for newline
 void Command::parseBuffer()
 {
     if(buffer.empty())
@@ -44,6 +43,8 @@ void Command::executeCommand()
         execQuit();
     else if(command == "HELP")
         execHelp();
+    else if(command == "NOTICE")
+        execNotice();
     else if (this->command == "PRIVMSG")
         execPrivMsg();
     else

@@ -7,6 +7,7 @@
 #include <cstring>
 #include <cstdio>
 #include <csignal>
+#include <cerrno>
 #include <termios.h> 
 #include <sys/types.h>
 #include <sys/socket.h>
