@@ -6,6 +6,8 @@
 #include <cctype>
 #include <cstring>
 #include <cstdio>
+#include <csignal>
+#include <termios.h> 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -39,6 +41,11 @@ private:
     std::map<int, Client *> _clients;
     std::map<std::string, Channel *> _channels;
     std::set<std::string> _nicknames;
+    static volatile sig_atomic_t sigint_received;
+    static void handle_sigint(int signal);
+    struct termios _original_termios;
+    void disableEOFBehavior();      
+    void restoreEOFBehavior();        
 
 public:
     Server(int port, const std::string& password);                     
@@ -61,6 +68,7 @@ public:
     bool isNickInUse(const std::string& nick);
     void addNick(const std::string& nick);
     void removeNick(const std::string& nick);
+    ~Server();
 };
 
 #endif

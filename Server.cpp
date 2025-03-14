@@ -5,9 +5,30 @@
 #include <vector>
 #include <poll.h>
 
+// Disable Ctrl+D as EOF
+void Server::disableEOFBehavior() {
+    struct termios term;
+    tcgetattr(STDIN_FILENO, &term); // Get current terminal settings
+    _original_termios = term;       // Save original settings
+
+    // Disable Ctrl+D as EOF
+    term.c_cc[VEOF] = _POSIX_VDISABLE;
+
+    // Set terminal to raw mode
+    term.c_lflag &= ~(ICANON | ECHO); // Disable canonical mode and echo
+    tcsetattr(STDIN_FILENO, TCSANOW, &term); // Apply new settings
+}
+
+// Restore original terminal settings
+void Server::restoreEOFBehavior() {
+    tcsetattr(STDIN_FILENO, TCSANOW, &_original_termios);
+}
+
 // Constructor
 Server::Server(int p, const std::string& password) : _port(p), _password(password), _authenticated(false), _max_clients(10){
     _client_addr_len = sizeof(_client_addr);
+    std::signal(SIGTSTP, SIG_IGN);
+    disableEOFBehavior();
 }
 
 // Initialize the server (create socket, bind, listen)
@@ -44,6 +65,10 @@ void Server::init() {
     }
 
     std::cout << "Server listening on port " << _port << std::endl;
+}
+// Destructor
+Server::~Server() {
+    restoreEOFBehavior(); // Restore original terminal settings
 }
 
 // Send message to a specific client
@@ -180,6 +205,16 @@ void Server::removeNick(const std::string &nick)
 }
 
 // Accept and manage client connections using poll()
+// Initialize the static flag
+volatile sig_atomic_t Server::sigint_received = 0;
+
+// Signal handler for SIGINT
+void Server::handle_sigint(int signal) {
+    if (signal == SIGINT) {
+        sigint_received = 1;
+    }
+}
+
 void Server::acceptClients() {
     std::vector<pollfd> fds;
 
@@ -189,15 +224,26 @@ void Server::acceptClients() {
     server_pollfd.events = POLLIN;
     fds.push_back(server_pollfd);
 
-    // Add stdin to detect Cmd+D (EOF)
+    // Add stdin to detect input (e.g., Ctrl+D or commands)
     pollfd stdin_pollfd;
     stdin_pollfd.fd = STDIN_FILENO;
     stdin_pollfd.events = POLLIN;
     fds.push_back(stdin_pollfd);
 
     while (true) {
+        // Check if SIGINT (^C) was received
+        if (sigint_received) {
+            std::cout << "Server shutting down (^C received)..." << std::endl;
+            stop();
+            return;
+        }
+
         int poll_count = poll(&fds[0], fds.size(), -1);
         if (poll_count < 0) {
+            if (errno == EINTR) {
+                // poll was interrupted by a signal, check sigint_received
+                continue;
+            }
             perror("poll");
             break;
         }
@@ -222,13 +268,26 @@ void Server::acceptClients() {
             fds.push_back(client_pollfd);
         }
 
-        // Check for Cmd+D (EOF) on stdin
+        // Check for input from stdin (e.g., commands or Ctrl+D)
         if (fds[1].revents & POLLIN) {
-            char buffer[10];
-            ssize_t bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer));
-            if (bytes_read == 0) {  // EOF detected (Cmd+D)
-                std::cout << "Server shutting down (EOF received)..." << std::endl;
-                return;
+            char buffer[1024];
+            ssize_t bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
+            if (bytes_read > 0) {
+                buffer[bytes_read] = '\0';
+                std::string input(buffer);
+
+                // Process input from stdin (e.g., execute a command)
+                std::cout << "Input from stdin: " << input << std::endl;
+
+                // Example: Forward input to all clients
+                for (std::map<int, Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+                    sendToClient(it->first, "Server: " + input);
+                }
+            } else if (bytes_read == 0) {
+                // Ctrl+D (EOF) detected, but we ignore it
+                std::cout << "Ctrl+D (EOF) ignored." << std::endl;
+            } else {
+                perror("read");
             }
         }
 
@@ -258,20 +317,29 @@ void Server::acceptClients() {
 
 // Stop the server and close connections
 void Server::stop() {
-    std::vector<int>::iterator it;
-    for (it = _client_fds.begin(); it != _client_fds.end(); ++it) {
+    // Close all client sockets
+    for (std::vector<int>::iterator it = _client_fds.begin(); it != _client_fds.end(); ++it) {
         close(*it);
     }
-    for(std::map<int, Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+
+    // Free all Client objects
+    for (std::map<int, Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
         delete it->second;
-    for(std::map<std::string, Channel *>::iterator it = _channels.begin(); it != _channels.end(); ++it)
+    }
+
+    // Free all Channel objects
+    for (std::map<std::string, Channel *>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
         delete it->second;
+    }
+
+    // Clear containers
     _clients.clear();
     _channels.clear();
-    close(_server_fd);
-    std::cout << "Server stopped." << std::endl;
-}
+    _client_fds.clear();
 
+    // Close the server socket
+    close(_server_fd);
+}
 void Server::sendToChannel(int sender_fd, const std::vector<Client*>& clients, const std::string& message) {
     std::vector<Client *>::const_iterator it;
     for (it = clients.begin(); it != clients.end(); ++it) {
