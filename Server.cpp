@@ -217,6 +217,7 @@ void Server::handle_sigint(int signal) {
 
 void Server::acceptClients() {
     std::vector<pollfd> fds;
+    static std::map<int, std::string> commandBuffers;
 
     // Add server socket to pollfd list
     pollfd server_pollfd;
@@ -255,9 +256,11 @@ void Server::acceptClients() {
                 perror("accept");
                 continue;
             }
-			// Set client socket to non-blocking mode
-			fcntl(client_fd, F_SETFL, O_NONBLOCK);
-
+            if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1) 
+            {
+                close(client_fd);
+                throw std::runtime_error(std::string("fcntl() error: ") + strerror(errno));
+            }
 			// Send welcome message
 			sendWelcomeMessage(client_fd);
 
@@ -276,42 +279,54 @@ void Server::acceptClients() {
         if (fds[1].revents & POLLIN) {
             char buffer[1024];
             ssize_t bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
-            if (bytes_read > 0) {
-                buffer[bytes_read] = '\0';
-                std::string input(buffer);
-
-                // Process input from stdin (e.g., execute a command)
-                std::cout << "Input from stdin: " << input << std::endl;
-
-                // Example: Forward input to all clients
-                for (std::map<int, Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
-                    sendToClient(it->first, "Server: " + input);
-                }
-            } else if (bytes_read == 0) {
-                // Ctrl+D (EOF) detected, but we ignore it
-                std::cout << "Ctrl+D (EOF) ignored." << std::endl;
-            } else {
+            if (bytes_read < 0)
                 perror("read");
-            }
         }
 
         // Handle clients
         for (size_t i = 2; i < fds.size(); ++i) {
             if (fds[i].revents & POLLIN) {
                 char buffer[1024];
-                ssize_t bytes_read = read(fds[i].fd, buffer, sizeof(buffer) - 1);
-                if (bytes_read <= 0) {
-                    // Client disconnected
-                    disconnectClient(fds[i].fd);
+                int client_fd = fds[i].fd;
+                ssize_t bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+                if (bytes_read < 0) {
+                    if (errno == EAGAIN || errno == EWOULDBLOCK)
+                        continue; 
+                    else
+                    {
+                        std::cout << "recv() error: " << strerror(errno) << std::endl;
+                        // Client disconnected
+                        disconnectClient(client_fd);
+                        commandBuffers.erase(client_fd);
+                        fds.erase(fds.begin() + i);
+                        close(client_fd);
+                        --i;
+                    }
+                } else if (bytes_read == 0) {
+                    std::cout << "socket " << client_fd << " hung up" << std::endl;
+                    disconnectClient(client_fd);
+                    commandBuffers.erase(client_fd);
                     fds.erase(fds.begin() + i);
+                    close(client_fd);
                     --i;
+
                 } else {
                     buffer[bytes_read] = '\0';
-                    std::string message(buffer);
-                    Client* client = _clients[fds[i].fd];
-                    Command cmd(message, *client, *this);
-                    cmd.parseBuffer();
-                    cmd.executeCommand();
+                    commandBuffers[client_fd] += buffer;
+                    size_t pos;
+                     while ((pos = commandBuffers[client_fd].find('\n')) != std::string::npos) {
+                        std::string message = commandBuffers[client_fd].substr(0, pos);
+                        commandBuffers[client_fd].erase(0, pos + 1);  // Remove processed message from buffer
+
+                        // Remove \r if present (handling \r\n cases)
+                        if (!message.empty() && message[message.size() - 1] == '\r') {
+                            message.erase(message.size() - 1);
+                        }
+                        Client* client = _clients[client_fd];
+                        Command cmd(message, *client, *this);
+                        cmd.parseBuffer();
+                        cmd.executeCommand();
+                    }
                 }
             }
         }
