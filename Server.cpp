@@ -90,15 +90,15 @@ bool Server::authenticateClient(int client_fd, const std::string& received_passw
 
 void Server::sendWelcomeMessage(int clientFd)
 {
-    std::string message = CYAN "╔════════════════════════════════════════════════════════╗\n" RESET;
-    message += CYAN "║        Welcome to Sumaya & Sarah's IRC Server! 🎉      ║\n" RESET;
-    message += CYAN "╠════════════════════════════════════════════════════════╣\n" RESET;
-    message += GREEN "║   To start, you need to register:                      ║\n" RESET;
-    message += GREEN "║  1️⃣  PASS <password>  - Authenticate yourself           ║\n" RESET;
-    message += GREEN "║  2️⃣  NICK <nickname>  - Choose a nickname               ║\n" RESET;
-    message += GREEN "║  3️⃣  USER <username> <hostname> <server> <realname>     ║\n" RESET;
-    message += GREEN "║   Once registered, type /HELP for commands! 🚀         ║\n" RESET;
-    message += CYAN "╚════════════════════════════════════════════════════════╝\n" RESET;
+    std::string message = CYAN "╔═════════════════════════════════════════════════════════╗\n" RESET;
+    message += CYAN "║              Welcome to ChatOasis Server! 🎉            ║\n" RESET;
+    message += CYAN "╠═════════════════════════════════════════════════════════╣\n" RESET;
+    message += GREEN "║   To start, you need to register:                       ║\n" RESET;
+    message += GREEN "║  1️⃣  PASS <password>  - Authenticate yourself            ║\n" RESET;
+    message += GREEN "║  2️⃣  NICK <nickname>  - Choose a nickname                ║\n" RESET;
+    message += GREEN "║  3️⃣  USER <username> <hostname> <server> <realname>      ║\n" RESET;
+    message += GREEN "║   Once registered, type /HELP for commands! 🚀          ║\n" RESET;
+    message += CYAN "╚═════════════════════════════════════════════════════════╝\n" RESET;
 
     sendToClient(clientFd, message);
 }
