@@ -255,17 +255,21 @@ void Server::acceptClients() {
                 perror("accept");
                 continue;
             }
+			// Set client socket to non-blocking mode
+			fcntl(client_fd, F_SETFL, O_NONBLOCK);
 
-            std::cout << "Client " << client_fd << " connected!" << std::endl;
-            sendWelcomeMessage(client_fd);
-            _clients[client_fd] = new Client(client_fd);
-            _client_fds.push_back(client_fd);
+			// Send welcome message
+			sendWelcomeMessage(client_fd);
 
-            // Add new client to poll list
-            pollfd client_pollfd;
-            client_pollfd.fd = client_fd;
-            client_pollfd.events = POLLIN;
-            fds.push_back(client_pollfd);
+			// Store client information
+			_clients[client_fd] = new Client(client_fd);
+			_client_fds.push_back(client_fd);
+
+			// Add new client to poll list
+			pollfd client_pollfd;
+			client_pollfd.fd = client_fd;
+			client_pollfd.events = POLLIN | POLLOUT;  // Allow both reading and writing
+			fds.push_back(client_pollfd);
         }
 
         // Check for input from stdin (e.g., commands or Ctrl+D)

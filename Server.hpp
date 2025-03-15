@@ -2,6 +2,7 @@
 #define SERVER_HPP
 
 #include <iostream>
+#include <fcntl.h>
 #include <cstdlib>
 #include <cctype>
 #include <cstring>
