@@ -4,7 +4,7 @@ CPPFILES 	   = main.cpp  ./Commands/Command.cpp ./Commands/Nick.cpp ./Commands/U
 
 CPP	= c++
 
-CPPFLAGS	= -Wall -Wextra -Werror -std=c++98
+CPPFLAGS	= -Wall -Wextra -Werror -std=c++98 -g3
 
 NAME	= ircserv
 

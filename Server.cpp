@@ -261,6 +261,7 @@ void Server::acceptClients() {
                 close(client_fd);
                 throw std::runtime_error(std::string("fcntl() error: ") + strerror(errno));
             }
+            std::cout << "Client " << client_fd << " connected!" << std::endl;
 			// Send welcome message
 			sendWelcomeMessage(client_fd);
 
@@ -272,7 +273,9 @@ void Server::acceptClients() {
 			pollfd client_pollfd;
 			client_pollfd.fd = client_fd;
 			client_pollfd.events = POLLIN | POLLOUT;  // Allow both reading and writing
+            client_pollfd.revents = 0;
 			fds.push_back(client_pollfd);
+
         }
 
         // Check for input from stdin (e.g., commands or Ctrl+D)
@@ -285,9 +288,11 @@ void Server::acceptClients() {
 
         // Handle clients
         for (size_t i = 2; i < fds.size(); ++i) {
+            if (fds[i].fd == -1)  // Skip invalid entries
+                continue;
             if (fds[i].revents & POLLIN) {
-                char buffer[1024];
                 int client_fd = fds[i].fd;
+                char buffer[1024];
                 ssize_t bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
                 if (bytes_read < 0) {
                     if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -303,7 +308,7 @@ void Server::acceptClients() {
                         --i;
                     }
                 } else if (bytes_read == 0) {
-                    std::cout << "socket " << client_fd << " hung up" << std::endl;
+                    std::cout << "Socket " << client_fd << " hung up" << std::endl;
                     disconnectClient(client_fd);
                     commandBuffers.erase(client_fd);
                     fds.erase(fds.begin() + i);
