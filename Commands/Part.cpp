@@ -4,31 +4,24 @@ void Command::execPart()
 {
     if(args.empty())
     {
-        server.sendToClient(client.getFd(), RED "461 PART :Not enough parameters\n" RESET);
+        server.sendToClient(client.getFd(), RED "461: "  + client.getNick() + " PART :Not enough parameters\r\n" RESET);
         return ;
     }
     std::string channelName = args[0];
-    std::string reason;
-    if (args.size() > 0)
-    {
-        for (size_t i = 1; i < args.size(); i++)
-        {
-            if (i > 1)
-                reason += " ";
-            reason += args[i];
-        }
-    }
     Channel* channel = server.getChannel(channelName);
     if (!channel)
     {
-        server.sendToClient(client.getFd(), RED "403 " + channelName + " :No such channel\n" RESET);
+        server.sendToClient(client.getFd(), RED "403: "  + client.getNick() + " " + channelName + " :No such channel\r\n" RESET);
         return;
     }
     if (!channel->isMember(client.getFd()))
     {
-        server.sendToClient(client.getFd(), RED "442 " + channelName + " :You're not in this channel\n" RESET);
+        server.sendToClient(client.getFd(), RED "442: "  + client.getNick() + " " + channelName + " :You're not in this channel\r\n" RESET);
         return;
     }
+    std::string partMsg = ":" + client.getPrefix() + " PART " + channelName + "\r\n";
+    server.sendToChannel(client.getFd(), channel->getMembers(), partMsg);
+    bool isOperator = channel->isOperator(client.getFd());
     if (channel->isOperator(client.getFd()))
         channel->removeOperatorPrivilage(&client);
     channel->removeMember(&client);
@@ -37,5 +30,13 @@ void Command::execPart()
         server.deleteChannel(channelName);
         return ;
     }
-    server.sendToChannel(channel->getMembers(), client.getNick() + " has left " + channelName + " because " + reason + "\n");
+    if (isOperator && channel->getOperators().empty())
+    {
+        std::vector<Client *> members = channel->getMembers();
+        if (!members.empty())
+        {
+            channel->giveOperatorPrivilage(members[0]);
+            server.sendToClient(members[0]->getFd(), CYAN "You are now the operator of " + channelName + "\r\n" RESET);
+        }
+    }
 }

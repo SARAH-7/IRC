@@ -35,6 +35,11 @@ std::string Client::getNick() const { return (this->_nickname); }
 std::string Client::getHost() const { return (this->_hostName); }
 
 std::string Client::getRealName() const { return (this->_realName); }
+
+std::string Client::getPrefix() const
+{
+    return this->_nickname + "!" + this->_user + "@" + this->_hostName;
+}
                         
 Client::~Client() {}
 

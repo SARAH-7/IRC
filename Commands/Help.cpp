@@ -1,15 +1,20 @@
 #include "Command.hpp"
 
+
 void Command::execHelp()
 {
-    std::string response = "Available commands:\n";
-    response += "JOIN <#channel> - Join a channel\n";
-    response += "PART <#channel> - Leave a channel\n";
-    response += "QUIT - Disconnect from the server\n";
-    response += "INVITE <user> <#channel> - Invite a user to a channel\n";
-    response += "TOPIC <#channel> [topic] - Change or view the channel topic\n";
-    response += "KICK <#channel> <user> - Remove a user from a channel\n";
-    response += "MODE <#channel> <mode> - Change channel settings\n";
+    std::string response = CYAN "╔════════════════════════════════════════════════════╗\n" RESET;
+    response += CYAN "║            📜  Available Commands 📜               ║\n" RESET;
+    response += CYAN "╠════════════════════════════════════════════════════╣\n" RESET;
+    response += GREEN "║ 1️⃣   JOIN <#channel>          │ Join a channel      ║\n" RESET;
+    response += GREEN "║ 2️⃣   PART <#channel>          │ Leave a channel     ║\n" RESET;
+    response += GREEN "║ 3️⃣   QUIT                     │ Disconnect from IRC ║\n" RESET;
+    response += GREEN "║ 4️⃣   INVITE <user> <#channel> │ Invite a user       ║\n" RESET;
+    response += GREEN "║ 5️⃣   TOPIC <#channel> [topic] │ Set/view topic      ║\n" RESET;
+    response += GREEN "║ 6️⃣   KICK <#channel> <user>   │ Remove a user       ║\n" RESET;
+    response += GREEN "║ 7️⃣   MODE <#channel> <mode>   │ Change settings     ║\n" RESET;
+    response += CYAN "╚════════════════════════════════════════════════════╝\n" RESET;
 
     server.sendToClient(client.getFd(), response);
 }
+

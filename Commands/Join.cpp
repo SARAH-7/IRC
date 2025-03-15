@@ -4,14 +4,14 @@ void Command::execJoin()
 {
     if(args.empty())
     {
-        server.sendToClient(client.getFd(), RED "461 JOIN :Not enough parameters\n" RESET);
+        server.sendToClient(client.getFd(), RED "461: " + client.getNick() + " JOIN :Not enough parameters\r\n" RESET);
         return ;
     }
     std::string channelName = args[0];
     std::string password = "";
-    if(channelName[0] != '#')
+    if (channelName[0] != '#') 
     {
-        server.sendToClient(client.getFd(), RED "476 " + channelName + " :Bad Channel Name\n" RESET);
+        server.sendToClient(client.getFd(), RED "476: " + client.getNick() + " " + channelName + " :Bad Channel Mask\r\n" RESET);
         return;
     }
     if(args.size() > 1)
@@ -21,35 +21,42 @@ void Command::execJoin()
         channel = server.createChannel(channelName);
     if (channel->isMember(client.getFd()))
     {
-        server.sendToClient(client.getFd(), RED "442 " + channelName + " :You're are already in this channel\n" RESET);
+        server.sendToClient(client.getFd(), RED "442: " + client.getNick() + " " + channelName + " :You're are already in this channel\r\n" RESET);
         return;
     }
     if (channel->getMode('i') && !channel->isInvited(&client)) 
     {
-        server.sendToClient(client.getFd(), RED "473 " + channelName + " :Invite-only channel\n" RESET);
+        server.sendToClient(client.getFd(), RED "473: " + client.getNick() + " " + channelName + " :Cannot join channel (+i)\r\n" RESET);
         return;
     }
     if (channel->getMode('k'))
     {
-        std::cout << "passowrd: " << password << "\n" << "channel " << channel->getPassword() << "\n";
         if (password.empty() || password != channel->getPassword())
         {
-            server.sendToClient(client.getFd(), RED "475 " + channelName + " :Incorrect password\n" RESET);
+            server.sendToClient(client.getFd(), RED "475: " + client.getNick() + " " + channelName + " :Cannot join channel (+k)\r\n" RESET);
             return;
         }
     }
     if (channel->getMode('l') && channel->getCurrentUsers() >= channel->getLimits())
     {
-        server.sendToClient(client.getFd(), RED "471 " + channelName + " :Channel is full\n" RESET);
+        server.sendToClient(client.getFd(), RED "471: " + client.getNick() + " " + channelName + " :Cannot join channel (+l)\r\n" RESET);
         return;
     }
     channel->removeInvitedUser(&client);
     channel->addMember(&client);
-    server.sendToClient(client.getFd(), GREEN "Joined " + channelName + " successfully\n" RESET);
+    std::string joinMsg =  ":" + client.getPrefix() + " JOIN " + channelName + "\r\n";
+    server.sendToChannel(client.getFd(), channel->getMembers(), joinMsg);
     if (channel->getMembers().size() == 1)
-    {
         channel->giveOperatorPrivilage(&client);
-        server.sendToClient(client.getFd(), CYAN "You are now the operator of " + channelName + "\n" RESET );
+    std::vector<Client *> members = channel->getMembers();
+    std::string memberList;
+    for (size_t i = 0; i < members.size(); i++)
+    {
+        memberList += members[i]->getNick();
+        if (i != members.size() - 1)  
+            memberList += " ";
     }
-    server.sendToChannel(channel->getMembers(), client.getNick() + " has joined " + channelName + "\n");
+    server.sendToClient(client.getFd(), "332: " + client.getNick() + " " + channelName + " :" + channel->getTopic() + "\r\n");
+    server.sendToClient(client.getFd(), "353: " + client.getNick() + " = " + channelName + " :" + memberList + "\r\n");
+    server.sendToClient(client.getFd(), "366: " + client.getNick() + " " + channelName + " :End of NAMES list\r\n");
 }

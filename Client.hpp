@@ -38,6 +38,7 @@ class Client{
     std::string getNick() const;
     std::string getHost() const;
     std::string getRealName() const;
+    std::string getPrefix() const;
 };
 
 #endif

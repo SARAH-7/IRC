@@ -2,10 +2,14 @@
 #define SERVER_HPP
 
 #include <iostream>
+#include <fcntl.h>
 #include <cstdlib>
 #include <cctype>
 #include <cstring>
 #include <cstdio>
+#include <csignal>
+#include <cerrno>
+#include <termios.h> 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -39,6 +43,11 @@ private:
     std::map<int, Client *> _clients;
     std::map<std::string, Channel *> _channels;
     std::set<std::string> _nicknames;
+    static volatile sig_atomic_t sigint_received;
+    static void handle_sigint(int signal);
+    struct termios _original_termios;
+    void disableEOFBehavior();      
+    void restoreEOFBehavior();        
 
 public:
     Server(int port, const std::string& password);                     
@@ -46,7 +55,8 @@ public:
     void acceptClients();
     bool authenticateClient(int client_fd, const std::string& received_password);
     void sendToClient(int client_fd, const std::string &message);
-    void sendToChannel(const std::vector<Client*>& clients, const std::string& message);
+    void sendToChannel(int sender_fd, const std::vector<Client*>& clients, const std::string& message);
+    void sendWelcomeMessage(int clientFd);
     void stop();
       
     Channel *getChannel(const std::string &channelName);
@@ -60,6 +70,7 @@ public:
     bool isNickInUse(const std::string& nick);
     void addNick(const std::string& nick);
     void removeNick(const std::string& nick);
+    ~Server();
 };
 
 #endif
