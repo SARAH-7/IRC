@@ -41,7 +41,7 @@ void Server::init() {
         perror("socket");
         exit(1);
     }
-
+    std::signal(SIGINT, Server::handle_sigint);
     // Set socket options
     int opt = 1;
     setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
@@ -86,7 +86,7 @@ bool Server::authenticateClient(int client_fd, const std::string& received_passw
     if (received_password == _password) {
         return true;
     } else {
-        sendToClient(client_fd, "464 :Password incorrect\n");
+        sendToClient(client_fd, RED "464 :Password incorrect\n" RESET);
         return false;
     }
 }
@@ -214,6 +214,7 @@ volatile sig_atomic_t Server::sigint_received = 0;
 // Signal handler for SIGINT
 void Server::handle_sigint(int signal) {
     if (signal == SIGINT) {
+        std::cout << "SIGINT received! Setting flag." << std::endl;
         sigint_received = 1;
     }
 }
@@ -354,16 +355,16 @@ void Server::stop() {
         delete it->second;
     }
 
+    _clients.clear();
     // Free all Channel objects
     for (std::map<std::string, Channel *>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
         delete it->second;
     }
-
+    _channels.clear();
     // Clear containers
     _clients.clear();
     _channels.clear();
     _client_fds.clear();
-
     // Close the server socket
     close(_server_fd);
 }

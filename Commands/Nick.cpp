@@ -45,7 +45,7 @@ void Command::execNick()
         server.removeNick(client.getNick());
     client.setNick(args[0]);
     server.addNick(args[0]);
-    std::string successMsg = "Your nickname had been set to " + client.getNick() + "\n";
+    std::string successMsg = "Your nickname has been set to " + client.getNick() + "\n";
     server.sendToClient(client.getFd(), successMsg);
     if(!client.getUser().empty())
     {

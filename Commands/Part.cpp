@@ -19,7 +19,14 @@ void Command::execPart()
         server.sendToClient(client.getFd(), RED "442: "  + client.getNick() + " " + channelName + " :You're not in this channel\r\n" RESET);
         return;
     }
-    std::string partMsg = ":" + client.getPrefix() + " PART " + channelName + "\r\n";
+    std::string message;
+    for(size_t i = 1; i < args.size(); i++)
+    {
+        message += args[i];
+        if(args.size() - 1)
+            message += ' ';
+    }
+    std::string partMsg = ":" + client.getPrefix() + " PART " + channelName + " :" + message + "\r\n";
     server.sendToChannel(client.getFd(), channel->getMembers(), partMsg);
     bool isOperator = channel->isOperator(client.getFd());
     if (channel->isOperator(client.getFd()))
