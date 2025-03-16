@@ -26,20 +26,20 @@ void Command::execJoin()
     }
     if (channel->getMode('i') && !channel->isInvited(&client)) 
     {
-        server.sendToClient(client.getFd(), RED "473: " + client.getNick() + " " + channelName + " :Cannot join channel (+i)\r\n" RESET);
+        server.sendToClient(client.getFd(), RED "473: " + client.getNick() + " " + channelName + " :Cannot join channel (channel is invite only)\r\n" RESET);
         return;
     }
     if (channel->getMode('k'))
     {
         if (password.empty() || password != channel->getPassword())
         {
-            server.sendToClient(client.getFd(), RED "475: " + client.getNick() + " " + channelName + " :Cannot join channel (+k)\r\n" RESET);
+            server.sendToClient(client.getFd(), RED "475: " + client.getNick() + " " + channelName + " :Cannot join channel (channel is password locked)\r\n" RESET);
             return;
         }
     }
     if (channel->getMode('l') && channel->getCurrentUsers() >= channel->getLimits())
     {
-        server.sendToClient(client.getFd(), RED "471: " + client.getNick() + " " + channelName + " :Cannot join channel (+l)\r\n" RESET);
+        server.sendToClient(client.getFd(), RED "471: " + client.getNick() + " " + channelName + " :Cannot join channel (Channel is full)\r\n" RESET);
         return;
     }
     channel->removeInvitedUser(&client);

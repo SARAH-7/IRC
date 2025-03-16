@@ -40,6 +40,7 @@ private:
     socklen_t _client_addr_len;
     int _max_clients;
     std::vector<int> _client_fds;
+    std::vector<pollfd> fds;
     std::map<int, Client *> _clients;
     std::map<std::string, Channel *> _channels;
     std::set<std::string> _nicknames;

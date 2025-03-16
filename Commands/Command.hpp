@@ -21,7 +21,6 @@ class Command{
     private:
     std::vector<std::string> args;
     std::string buffer;
-    std::vector<std::string> nicknameStored;
     std::string command;
     Client &client;
     Server &server;

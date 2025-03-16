@@ -23,6 +23,7 @@ void Command::execUser()
     if(!client.getNick().empty())
     {
         client.setIsRegistered(true);
-        server.sendToClient(client.getFd(), "001 " + client.getNick() + " :Welcome to the Internet Relay Netwrok, " + client.getPrefix() + "\r\n");
+        server.sendToClient(client.getFd(), "001 " + client.getNick() + " :Welcome to the Internet Relay Network, " 
+        + client.getPrefix() + "\r\n");
     }
 }
