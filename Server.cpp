@@ -329,7 +329,6 @@ void Server::acceptClients()
                             message.erase(message.size() - 1);
                         }
                         Client* client = _clients[client_fd];
-                        std::cout << "Recieved from Client " << client_fd << ": " << message << std::endl;
                         Command cmd(message, *client, *this);
                         cmd.parseBuffer();
                         cmd.executeCommand();
@@ -363,10 +362,8 @@ void Server::stop() {
     _clients.clear();
     _channels.clear();
     _client_fds.clear();
-    fds.clear();
     // Close the server socket
     close(_server_fd);
-    std::cout.flush();
 }
 void Server::sendToChannel(int sender_fd, const std::vector<Client*>& clients, const std::string& message) {
     std::vector<Client *>::const_iterator it;
