@@ -10,13 +10,18 @@ CPPFLAGS	= -Wall -Wextra -Werror -std=c++98 -g3
 
 NAME	= ircserv
 
+OBJ = $(CPPFILES:.cpp=.o)
+
+%.o: %.cpp
+	$(CPP) $(CPPFLAGS) -c $< -o $@ 
+
 all: $(NAME)
 
-$(NAME): $(CPPFILES)
-	$(CPP) $(CPPFLAGS) $(CPPFILES) -o $(NAME)
+$(NAME): $(OBJ)
+	$(CPP) $(CPPFLAGS) $(OBJ) -o $(NAME)
 
-bonus: $(NAME)
-	$(CPP) $(CPPFLAGS) ./Bot.cpp ./Commands/Command.cpp -o $(NAME)  # ✅ Bonus: Compile Bot & File Transfer
+clean:
+	rm -f $(OBJ)
 
 fclean:
 	rm -f $(NAME)

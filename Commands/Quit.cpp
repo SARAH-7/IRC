@@ -2,6 +2,12 @@
 
 void Command::execQuit()
 {
+	if(!client.getIsAuthenticated() || !client.getIsRegistered())
+    {
+        server.sendToClient(client.getFd(), RED "451: " + client.getNick() + " :You have not registered\r\n" RESET);
+        return ;
+    }
+
     std::string quitMessage;
     if (args.size() > 0)  
     {

@@ -2,7 +2,12 @@
 
 void Command::execInvite()
 {
-    if(args.size() < 2)
+	if(!client.getIsAuthenticated() || !client.getIsRegistered())
+    {
+        server.sendToClient(client.getFd(), RED "451: " + client.getNick() + " :You have not registered\r\n" RESET);
+        return ;
+    }
+	if(args.size() < 2)
     {
         server.sendToClient(client.getFd(), RED ":461 " + client.getNick() + " INVITE :Not enough parameters\r\n" RESET);
         return;

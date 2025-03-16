@@ -6,7 +6,7 @@
 Bot::Bot(Server& server) : _server(server) {}
 
 void Bot::processMessage(Client* sender, const std::string& message) {
-    if (message == "!hello") {
+    if (message == "!bot") {
         _server.sendToClient(sender->getFd(), "Bot: Hello, " + sender->getNick() + "! if you want to know the current time enter !time, if you need help enter !help\n");
     } 
     else if (message == "!time") {
