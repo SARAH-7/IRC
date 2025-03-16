@@ -53,7 +53,7 @@ void Command::executeCommand()
     else if (this->command[0] == '!')
         bot.processMessage(&client, this->command);
     else
-        server.sendToClient(client.getFd(), RED "Unknown command: " + this->command + " If you need assisatnce use the HELP command\n" RESET);
+        server.sendToClient(client.getFd(), RED "Unknown command: " + this->command + "\n" + " If you need assisatnce use the HELP command\n" RESET);
 }
 
 // void Command::executeCommand()

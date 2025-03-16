@@ -110,15 +110,15 @@ void Command::execMode()
         server.sendToClient(client.getFd(), RED "461: "  + client.getNick() + " MODE :Not enough parameters\r\n" RESET);
         return;
     }
-    std::string modeFlag = args[1];
-    std::string modeType = "";
-    if(args.size() > 2)
-        modeType = args[2];
     if (!channel->isOperator(client.getFd()))
     {
         server.sendToClient(client.getFd(), RED "482: "  + client.getNick() + " " + channelName + " :You're not a channel operator\r\n" RESET);
         return;
     }
+    std::string modeFlag = args[1];
+    std::string modeType = "";
+    if(args.size() > 2)
+        modeType = args[2];
     bool enable = true;
     for (size_t i = 0; i < modeFlag.length(); i++)
     {

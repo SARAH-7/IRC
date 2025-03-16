@@ -6,7 +6,7 @@ CPPFILES 	   = main.cpp  \
 
 CPP	= c++
 
-CPPFLAGS	= -Wall -Wextra -Werror -std=c++98 -g3
+CPPFLAGS	= -Wall -Wextra -Werror -std=c++98
 
 NAME	= ircserv
 
@@ -23,7 +23,7 @@ $(NAME): $(OBJ)
 clean:
 	rm -f $(OBJ)
 
-fclean:
-	rm -f $(NAME)
+fclean: clean
+	rm -f $(NAME) 
 
 re: fclean all
