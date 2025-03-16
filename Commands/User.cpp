@@ -17,6 +17,11 @@ void Command::execUser()
         server.sendToClient(client.getFd(), RED "461: Not enough parameters\r\n" RESET);
         return ;
     }
+    if(args.size() > 4)
+    {
+        server.sendToClient(client.getFd(), RED "461: " + client.getNick() + " :USER : Wrong number of parameters : USER  <username> <servername> <unused> <realname>\r\n" RESET);
+        return ;
+    }
     client.setUser(args[0]);
     client.setHost(args[1]);
     client.setRealName(args[3]);

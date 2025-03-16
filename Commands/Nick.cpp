@@ -31,6 +31,11 @@ void Command::execNick()
         server.sendToClient(client.getFd(), RED "431: :No nickname given\r\n" RESET);
         return ;
     }
+    if(args.size() > 1)
+    {
+        server.sendToClient(client.getFd(), RED "461: " + client.getNick() + " :NICK : Wrong number of parameters : NICK <nickname>\r\n" RESET);
+        return ;
+    }
     if(!isValidNick(args[0]))
     {
         server.sendToClient(client.getFd(), RED "432: " + args[0] + " :Erroneus nickname\r\n" RESET);

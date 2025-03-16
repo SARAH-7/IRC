@@ -13,6 +13,11 @@ void Command::execKick()
         server.sendToClient(client.getFd(), RED "461: " + client.getNick() + " KICK :Not enough parameters\r\n" RESET);
         return;
     }
+    if(args.size() > 2)
+    {
+        server.sendToClient(client.getFd(), RED "461: " + client.getNick() + " :KICK: Wrong number of parameters : KICK <channel> <nickname>\r\n" RESET);
+        return ;
+    }
     std::string channelName = args[0];
     std::string nick = args[1];
     Channel* channel = server.getChannel(channelName);

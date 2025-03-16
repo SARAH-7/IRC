@@ -8,7 +8,11 @@ void Command::execHelp()
         server.sendToClient(client.getFd(), RED "451: " + client.getNick() + " :You have not registered\r\n" RESET);
         return ;
     }
-
+    if(args.size() > 0)
+    {
+        server.sendToClient(client.getFd(), RED "461: " + client.getNick() + " :HELP command does not accept parameters\r\n" RESET);
+        return ;
+    }
     std::string response = CYAN "╔════════════════════════════════════════════════════╗\n" RESET;
     response += CYAN "║            📜  Available Commands 📜               ║\n" RESET;
     response += CYAN "╠════════════════════════════════════════════════════╣\n" RESET;

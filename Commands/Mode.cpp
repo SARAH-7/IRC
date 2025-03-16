@@ -119,6 +119,11 @@ void Command::execMode()
     std::string modeType = "";
     if(args.size() > 2)
         modeType = args[2];
+    if(args.size() > 3)
+    {
+        server.sendToClient(client.getFd(), RED "461: " + client.getNick() + " :MODE : Wrong number of parameters : MODE <channel> <mode> <set>\r\n" RESET);
+        return ;
+    }
     bool enable = true;
     for (size_t i = 0; i < modeFlag.length(); i++)
     {

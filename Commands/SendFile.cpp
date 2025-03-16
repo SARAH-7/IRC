@@ -16,6 +16,11 @@ void Command::execSendFile() {
         return;
     }
 
+    if(args.size() > 2)
+    {
+        server.sendToClient(client.getFd(), RED "461: " + client.getNick() + " :SENDFILE : Wrong number of parameters : SENDFILE  <filename> <recipient>\r\n" RESET);
+        return ;
+    }
     std::string filename = args[0];
     std::string recipientNick = args[1];
 

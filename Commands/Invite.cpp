@@ -12,6 +12,11 @@ void Command::execInvite()
         server.sendToClient(client.getFd(), RED ":461 " + client.getNick() + " INVITE :Not enough parameters\r\n" RESET);
         return;
     }
+    if(args.size() > 2)
+    {
+        server.sendToClient(client.getFd(), RED "461: " + client.getNick() + " :INVITE : Wrong number of parameters : INVITE <nickname> <channel>\r\n" RESET);
+        return ;
+    }
     std::string clientNick = args[0];
     std::string channelName = args[1];
 

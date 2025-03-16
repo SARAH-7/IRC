@@ -22,6 +22,11 @@ void Command::execJoin()
     }
     if(args.size() > 1)
         password = args[1];
+    if(args.size() > 2)
+    {
+        server.sendToClient(client.getFd(), RED "461: " + client.getNick() + " :INVITE : Wrong number of parameters : JOIN <channel> optional : <passowrd>\r\n" RESET);
+        return ;
+    }
     Channel *channel = server.getChannel(channelName);
     if(!channel)
         channel = server.createChannel(channelName);
