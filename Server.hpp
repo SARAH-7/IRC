@@ -20,7 +20,6 @@
 #include "Client.hpp"
 #include "./Commands/Command.hpp"
 #include "Channel.hpp"
-
 #define RED     "\033[31m"
 #define GREEN   "\033[32m"
 #define YELLOW  "\033[33m"
@@ -28,6 +27,8 @@
 #define MAGENTA "\033[35m"
 #define CYAN    "\033[36m"
 #define RESET   "\033[0m"
+
+class Bot;
 
 class Server {
 private:
@@ -47,7 +48,8 @@ private:
     static void handle_sigint(int signal);
     struct termios _original_termios;
     void disableEOFBehavior();      
-    void restoreEOFBehavior();        
+    void restoreEOFBehavior();   
+    Bot *bot;     
 
 public:
     Server(int port, const std::string& password);                     

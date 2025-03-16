@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "Bot.hpp"
 #include <unistd.h>
 #include <cstring>
 #include <iostream>
@@ -25,10 +26,11 @@ void Server::restoreEOFBehavior() {
 }
 
 // Constructor
-Server::Server(int p, const std::string& password) : _port(p), _password(password), _authenticated(false), _max_clients(10){
-    _client_addr_len = sizeof(_client_addr);
+Server::Server(int p, const std::string& password) 
+    : _port(p), _password(password), _authenticated(false), _client_addr_len(sizeof(_client_addr)), _max_clients(10){
     std::signal(SIGTSTP, SIG_IGN);
     disableEOFBehavior();
+	bot = new Bot(*this); 
 }
 
 // Initialize the server (create socket, bind, listen)
@@ -69,6 +71,7 @@ void Server::init() {
 // Destructor
 Server::~Server() {
     restoreEOFBehavior(); // Restore original terminal settings
+	delete bot;
 }
 
 // Send message to a specific client
@@ -328,7 +331,7 @@ void Server::acceptClients() {
                             message.erase(message.size() - 1);
                         }
                         Client* client = _clients[client_fd];
-                        Command cmd(message, *client, *this);
+                        Command cmd(message, *client, *this, *bot);
                         cmd.parseBuffer();
                         cmd.executeCommand();
                     }

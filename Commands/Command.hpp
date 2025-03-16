@@ -13,6 +13,8 @@
 #include "../Client.hpp"
 #include "../Server.hpp"
 
+class Bot;
+
 class Client;
 
 class Server;
@@ -25,9 +27,10 @@ class Command{
     std::string command;
     Client &client;
     Server &server;
+    Bot &bot;
 
     public:
-    Command(std::string buffer, Client &client, Server &server);
+    Command(std::string buffer, Client &client, Server &server, Bot &bot);
     ~Command();
 
     void parseBuffer();
@@ -45,6 +48,7 @@ class Command{
     void execHelp();
 	void execPrivMsg();
     void execNotice();
+    void execSendFile();
     void applyMode(Channel *channel, char mode, bool enable, const std::string &modeType);
 };
 
