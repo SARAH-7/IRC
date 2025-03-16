@@ -20,16 +20,24 @@ void Command::execJoin()
         server.sendToClient(client.getFd(), RED "476: " + client.getNick() + " " + channelName + " :Bad Channel Mask\r\n" RESET);
         return;
     }
-    if(args.size() > 1)
-        password = args[1];
     if(args.size() > 2)
     {
-        server.sendToClient(client.getFd(), RED "461: " + client.getNick() + " :INVITE : Wrong number of parameters : JOIN <channel> optional : <passowrd>\r\n" RESET);
+        server.sendToClient(client.getFd(), RED "461: " + client.getNick() + " :JOIN : Wrong number of parameters : JOIN <channel> optional : <passowrd>\r\n" RESET);
         return ;
     }
     Channel *channel = server.getChannel(channelName);
     if(!channel)
         channel = server.createChannel(channelName);
+    if(args.size() > 1)
+    {
+        if(channel->getMode('k'))
+            password = args[1];
+        else
+        {
+            server.sendToClient(client.getFd(), RED "461: " + client.getNick() + " :JOIN : Wrong number of parameters. JOIN <channel>\r\n" RESET);
+            return ;
+        }
+    }
     if (channel->isMember(client.getFd()))
     {
         server.sendToClient(client.getFd(), RED "442: " + client.getNick() + " " + channelName + " :You're are already in this channel\r\n" RESET);
