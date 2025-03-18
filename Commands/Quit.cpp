@@ -2,23 +2,32 @@
 
 void Command::execQuit()
 {
-    std::string quitMessage = "Client Quit";
-    if (args.size() > 0)  
-        quitMessage = args[0];
-    std::string message = ":" + client.getNick() + " QUIT :" + quitMessage + "\n";
+	if(!client.getIsAuthenticated() || !client.getIsRegistered())
+    {
+        server.sendToClient(client.getFd(), RED "451: " + client.getNick() + " :You have not registered\r\n" RESET);
+        return ;
+    }
 
+    std::string quitMessage;
+    if (args.size() > 0)  
+    {
+        for(size_t i = 0; i < args.size(); i++)
+        {
+            quitMessage += args[i];
+            if(args.size() - 1)
+                quitMessage += ' ';
+        }
+    }
+    else
+        quitMessage = "Client Quit";
+    std::string message = ":" + client.getNick() + " QUIT :" + client.getNick() + " has left the server: " + quitMessage + "\r\n";
     std::vector<std::string> channels = server.getClientChannels(client);
     for (size_t i = 0; i < channels.size(); i++)
     {
         Channel* channel = server.getChannel(channels[i]);
         if (channel)
-        {
             server.sendToChannel(client.getFd(), channel->getMembers(), message);
-            channel->removeMember(&client);
-            if (channel->getMembers().empty())  
-                server.deleteChannel(channel->getName());
-        }
     }
-    server.sendToClient(client.getFd(), RED "ERROR :Closing connection\n" RESET);
+    server.sendToClient(client.getFd(), RED "ERROR :Closing connection\r\n" RESET);
     server.disconnectClient(client.getFd());
 }

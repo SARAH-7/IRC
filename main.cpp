@@ -5,7 +5,7 @@
 
 int main(int ac, char **av) {
     if (ac != 3) {
-        std::cout << "Invalid number of arguments!" << std::endl;
+        std::cout << "Invalid number of arguments!\n" << "Arguments needed: ./ircserv <port number> <password>" << std::endl;;
         return 1;
     }
 
@@ -15,16 +15,11 @@ int main(int ac, char **av) {
         return 1;
     }
 
-    // Create server object
     Server server(port, av[2]);
-
-    // Initialize the server (create socket, bind, listen)
     server.init();
 
-    // Accept and handle client connections
     server.acceptClients();
 
-    // Stop the server when done
     server.stop();
 
     return 0;
